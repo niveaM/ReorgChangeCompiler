@@ -1,0 +1,16 @@
+{
+  "name": "reorg-change-compiler",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Prototype: turns a freeform reorg message into a validated, ordered, human-gated runbook across five systems of record.",
+  "scripts": {
+    "start": "node scripts/serve.js",
+    "test": "node --test test/engine.test.js test/ui.e2e.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

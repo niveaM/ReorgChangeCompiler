@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reorg Change Compiler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap">
+<link rel="stylesheet" href="code/css/styles.css">
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <h1>Reorg Change Compiler</h1>
+  <p class="lede">Paste a reorg announcement as it arrived. The page redacts PII, has an LLM read it into a typed change set, checks it against five systems of record, and compiles the ordered, gated runbook that propagates it, including the step a person has to key by hand. Systems are simulated with a seeded fictional company; every rule and check is real code.</p>
+  <div class="meta"><span>Today <b id="mToday"></b></span><span>Open period <b id="mPeriod"></b></span><span>GL lockdown from <b id="mLock"></b></span><span>Systems <b>HRIS · Planning · ERP/GL · Allocation (no API) · BI</b></span></div>
+  <div class="calwrap"><span class="callabel" id="calLabel"></span><div class="calendar" role="img" aria-label="Close calendar" id="cal"></div><span class="calkey"><i class="k-today"></i>Today <i class="k-lock"></i>GL lockdown: GL changes need the Controller</span></div>
+</header>
+
+<nav class="flow" id="flow" aria-label="Pipeline steps"></nav>
+
+<section class="stage live" id="st1">
+  <div class="num">01</div>
+  <div>
+    <h2>Intake</h2>
+    <p class="sub">Freeform text from Slack, email or a doc. Nothing structured upstream.</p>
+    <div class="row" style="margin-bottom:8px" id="samples"></div>
+    <label class="label" for="intake">Message</label>
+    <textarea id="intake"></textarea>
+  </div>
+</section>
+
+<section class="stage" id="st2">
+  <div class="num">02</div>
+  <div>
+    <h2>PII redaction</h2>
+    <p class="sub">Before any model call, names become employee IDs and pay and contact details become tokens. The model sees only the redacted text.</p>
+    <div class="grid2">
+      <div class="panel"><p class="label">What the model sees</p><pre class="redacted" id="redacted"></pre></div>
+      <div class="panel"><p class="label">Held back in the vault</p><div id="vault" class="sys-list"></div>
+        <details><summary>Show the full extraction prompt</summary><pre class="redacted" id="prompt" style="margin-top:8px;max-height:260px;overflow:auto"></pre></details></div>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="st3">
+  <div class="num">03</div>
+  <div>
+    <h2>Extract the change set</h2>
+    <p class="sub">An LLM reads the redacted text into typed changes, each with its source quote, a confidence score and open questions. The JSON stays editable: this is where the requester corrects the reading.</p>
+    <div class="row" style="margin-bottom:10px">
+      <button class="primary" id="btnExtract">Extract with Claude</button>
+      <button id="btnStop" hidden>Stop</button>
+      <button id="btnRef">Load hand-written reading</button>
+      <span class="status" id="exStatus"></span>
+    </div>
+    <details id="apiBox" class="apibox" hidden>
+      <summary>Run extraction with your own Anthropic API key</summary>
+      <div class="row" style="margin-top:8px">
+        <input type="password" id="apiKey" placeholder="sk-ant-…" autocomplete="off" style="flex:2;min-width:220px" aria-label="Anthropic API key">
+        <input type="text" id="apiModel" placeholder="claude-sonnet-5-5" style="flex:1;min-width:160px" aria-label="Model">
+        <button id="btnApiKey">Use this key</button>
+      </div>
+      <p class="note">The key stays in this page's memory and is sent only to api.anthropic.com. It is never stored. Reloading the page forgets it.</p>
+    </details>
+    <div class="grid2">
+      <div class="panel"><p class="label">Change set (editable)</p><textarea id="cs" spellcheck="false" aria-label="Change set JSON"></textarea></div>
+      <div class="panel"><p class="label">Readable</p><div id="csReadable" class="note">No change set yet.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="st4">
+  <div class="num">04</div>
+  <div>
+    <h2>Validate</h2>
+    <p class="sub">Deterministic checks against the systems of record, re-run on every edit. Blockers stop the pipeline. Approval items route to a named person. The validator also derives the work nobody wrote down: budget that should follow people, GL remaps and closing the cost center a merge empties.</p>
+    <div class="tally" id="tally"></div>
+    <div class="findings" id="findings"></div>
+    <details open><summary>Headcount and cost by cost center (aggregate only, no individual pay)</summary>
+      <div class="scroll" style="margin-top:8px"><table id="hc"></table></div></details>
+  </div>
+</section>
+
+<section class="stage" id="st5">
+  <div class="num">05</div>
+  <div>
+    <h2>Approve</h2>
+    <p class="sub">Gates are chosen by what the change touches. Gate-1 always applies; no risk level skips it. Each signature covers the gate, the signer, the change-set version and a hash of the systems at signing. Editing the change set voids every signature, and so does drift in the systems.</p>
+    <div class="gates" id="gates"></div>
+  </div>
+</section>
+
+<section class="stage" id="st6">
+  <div class="num">06</div>
+  <div>
+    <h2>Propagate</h2>
+    <p class="sub">The runbook, compiled from the change set. Order is fixed by phase and each phase says why. A step unlocks only when every earlier phase is done and its gates are signed. Before every step, the live systems are hashed and compared with the state the plan expects; any outside change stops the run. Allocation has no API, so those steps issue a hash-bound ticket, wait for the person who keys it, and complete only after a second person verifies it.</p>
+    <div class="life" id="life" aria-label="Change lifecycle"></div>
+    <div class="row" style="margin-bottom:10px"><button class="primary" id="btnRunReady">Run all ready API steps</button><button id="btnDrift" title="Someone edits the HRIS directly, outside this plan">Simulate an outside edit</button><span class="status" id="runStatus"></span></div>
+    <div id="staleBanner" hidden></div>
+    <div class="scroll"><table class="steps" id="steps"></table></div>
+  </div>
+</section>
+
+<section class="stage" id="st7">
+  <div class="num">07</div>
+  <div>
+    <h2>Reconcile</h2>
+    <p class="sub">Independent of the plan: reads all five systems and checks the invariants that today only fail weeks later in a financial report. Try keying an allocation rule that sums to 90% and see it caught here.</p>
+    <div class="row" style="margin-bottom:10px"><button class="primary" id="btnRecon">Reconcile now</button><span class="status" id="reconStatus"></span></div>
+    <div class="recon" id="recon"></div>
+    <details><summary>System state after propagation</summary><div class="grid2" style="margin-top:8px" id="sysState"></div></details>
+  </div>
+</section>
+</div>
+
+
+<!-- Deterministic engine: no model calls, no network. Order matters. -->
+<script src="code/src/engine/seed.js"></script>
+<script src="code/src/engine/pii-shield.js"></script>
+<script src="code/src/engine/validator.js"></script>
+<script src="code/src/engine/planner.js"></script>
+<script src="code/src/engine/systems.js"></script>
+<script src="code/src/engine/reconcile.js"></script>
+<script src="code/src/engine/human-queue-adapter.js"></script>
+<!-- UI -->
+<script src="code/src/ui/samples.js"></script>
+<script src="code/src/ui/model-client.js"></script>
+<script src="code/src/ui/app.js"></script>
+</body>
+</html>
