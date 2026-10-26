@@ -4,6 +4,8 @@ The document presents a design and a working prototype for propagating reorgs. A
 
 **Author:** Nivea Mandavia
 
+**Demo video:** [2-minute narrated walkthrough](https://niveam.github.io/ReorgChangeCompiler/demo/Reorg-Change-Compiler-demo.mp4) · **Live prototype:** [niveam.github.io/ReorgChangeCompiler](https://niveam.github.io/ReorgChangeCompiler/)
+
 **The core idea: an agentic pipeline** that carries a reorg message through to five systems. One model call reads the message, deterministic code checks it and orders the work, and people approve it at each gate. The hard part is doing it in the right order, with checks and balances that validate each change and confirm it reached every system. Today one person does this from a checklist in their head. The pipeline runs on a written-down [order of operations](./Reorg-Change-Compiler-strategy.md#order-of-operations), with a reason for each phase, the same way every time:
 
 1. **ERP cost centers & GL:** create a cost center only if it's new (most already exist), and remap the GL.
@@ -30,10 +32,12 @@ The rules behind the order:
 | 1 | [`BRIEF.md`](./BRIEF.md) | The assignment this prototype answers, for reference. |
 | 2 | [`Reorg-Change-Compiler-strategy.md`](./Reorg-Change-Compiler-strategy.md) | The design doc, in the brief's format: summary; goals and non-goals; approach and design, including the [order of operations](./Reorg-Change-Compiler-strategy.md#order-of-operations); alternatives considered; risks and failure modes; assumptions and open questions. Start here. |
 | 3 | [Live prototype](https://niveam.github.io/ReorgChangeCompiler/) | The working prototype, hosted. Open it in a browser; nothing to install. |
-| 4 | [Prototype source](https://github.com/niveaM/ReorgChangeCompiler/tree/main/code/) | The prototype source and demo walkthrough. |
+| 4 | [Demo video (2 min)](https://niveam.github.io/ReorgChangeCompiler/demo/Reorg-Change-Compiler-demo.mp4) | A narrated walkthrough of the prototype, from a Slack message to all five systems reconciled. Plays in the browser. |
+| 5 | [Prototype source](https://github.com/niveaM/ReorgChangeCompiler/tree/main/code/) | The prototype source and demo walkthrough. |
 
 ## Run the prototype
 
+- **Watch first:** the [2-minute demo video](https://niveam.github.io/ReorgChangeCompiler/demo/Reorg-Change-Compiler-demo.mp4) walks through one reorg end to end.
 - **Live page:** open https://niveam.github.io/ReorgChangeCompiler/ and click **Load hand-written reading** to run it without an API key.
 - **With Node 18 or newer:** clone the [repository](https://github.com/niveaM/ReorgChangeCompiler). In the repository's `code/` directory, run `npm start` and open http://localhost:8080. Run `npm install && npm test` there to run the 17 tests.
 - **Live extraction:** in the Extract step, paste an Anthropic API key. Without one, the hand-written readings run the same pipeline end to end.
